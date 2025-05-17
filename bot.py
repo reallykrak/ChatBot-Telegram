@@ -5,7 +5,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, Con
 
 # Anahtarları buraya gir
 TELEGRAM_TOKEN = '7763395301:AAF3thVNH883Rzmz0RTpsx3wuiCG_VLpa-g'  # BotFather'dan aldığın token
-OPENROUTER_API_KEY = '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'
+OPENROUTER_API_KEY = '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'
 
 # Logging (isteğe bağlı)
 logging.basicConfig(level=logging.INFO)
