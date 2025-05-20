@@ -11,7 +11,7 @@ def handle_message(message):
     user_input = urllib.parse.quote(message.text)
 
     try:
-        url = f"https://api.popcat.xyz/chatbot?msg={user_input}&owner=reallykrak&botname=ZekaBot"
+        url = f"https://api.popcat.xyz/chatbot?msg={user_input}&owner=anon&botname=KüfürbazBot"
         response = requests.get(url)
 
         if response.status_code == 200:
