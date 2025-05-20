@@ -1,56 +1,38 @@
-import logging
+import telebot
 import requests
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
+import urllib.parse
 
-# API Anahtarları
-TELEGRAM_TOKEN = "7763395301:AAF3thVNH883Rzmz0RTpsx3wuiCG_VLpa-g"
-OPENROUTER_API_KEY = "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"
+BOT_TOKEN = '8158580587:AAEOoRXYg5UCLvHKUAbFbVChDMBV-JPD4pk'  # Bot tokenini buraya yaz
+bot = telebot.TeleBot(BOT_TOKEN)
 
-# Logging (İsteğe bağlı)
-logging.basicConfig(level=logging.INFO)
+API_URL = "https://z4aher.totalh.net/gemini/GeminiChat.php?prompt="
 
-# /start komutu
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Merhaba! Ben ChatGPT botuyum. Bana mesaj yazarak sohbet edebilirsin.")
+# Özel cevaplar
+custom_replies = {
+    "hile ne zaman çıkacak": "Çıkmaz ayın çarşambasında çıkacak gardaş, bekle babana da söyleriz!",
+    "oyun neden çöktü": "Oyunu senin gibiler yüzünden kapattık la, rahat mısın!",
+    "admin kim": "Admin benim lan! Sıkıntı mı var, hadi başka kapıya."
+}
 
-# Mesajları işleme
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_message = update.message.text
-    await update.message.chat.send_action(action="typing")
+@bot.message_handler(func=lambda message: True)
+def handle_message(message):
+    user_input = message.text.lower().strip()
 
-    url = "https://openrouter.ai/api/v1/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-        "Content-Type": "application/json",
-        "X-Title": "TelegramGPTBot"
-    }
-    data = {
-        "model": "mistralai/mistral-7b-instruct",  # Ücretsiz model
-        "messages": [
-            {"role": "system", "content": "Kısa ve Türkçe cevaplar ver."},
-            {"role": "user", "content": user_message}
-        ]
-    }
+    # Eğer özel cevap varsa
+    if user_input in custom_replies:
+        bot.reply_to(message, custom_replies[user_input])
+        return
 
+    # Normal API isteği
     try:
-        response = requests.post(url, headers=headers, json=data)
-        response.raise_for_status()
-        result = response.json()
-        reply = result['choices'][0]['message']['content']
-        await update.message.reply_text(reply)
-    except requests.exceptions.HTTPError as e:
-        await update.message.reply_text("HATA: API Key çalışmıyor veya erişim yok.")
+        encoded_input = urllib.parse.quote(user_input)
+        response = requests.get(API_URL + encoded_input)
+
+        if response.status_code == 200:
+            bot.reply_to(message, response.text)
+        else:
+            bot.reply_to(message, "API'den cevap alınamadı.")
     except Exception as e:
-        await update.message.reply_text(f"Bir hata oluştu: {str(e)}")
+        bot.reply_to(message, f"Bir hata oluştu: {e}")
 
-# Botu başlat
-def main():
-    app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-    print("Bot çalışıyor... Telegram'dan mesaj gönder.")
-    app.run_polling()
-
-if __name__ == '__main__':
-    main()
+bot.polling()
