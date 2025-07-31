@@ -1,12 +1,8 @@
 import telebot
 import requests
 
-# BOT TOKEN VE API KEY
 BOT_TOKEN = '8456728583:AAGVjaFzVdCrZuXSNrL7w0OQucdaZpYqmI0'
-OPENROUTER_API_KEY = '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'  # BURAYA kendi OpenRouter API anahtarını yaz
-
-# MODEL ADI
-MODEL = 'deepseek-chat'  # OpenRouter destekli bir model (GPT-3.5 benzeri)
+GEMINI_API_KEY = 'AIzaSyDGXakapXgul46kbkC6P4RI-yObnzeFsgM'  # BURAYA kendi Google API anahtarını yapıştır
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
@@ -14,33 +10,25 @@ bot = telebot.TeleBot(BOT_TOKEN)
 def handle_message(message):
     user_input = message.text
 
-    # OpenRouter API'ye istek ver
-    headers = {
-        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://yourproject.example",  # Optional ama bazı modeller için gerekli
-        "X-Title": "TelegramBot"
-    }
-
-    payload = {
-        "model": MODEL,
-        "messages": [
-            {"role": "system", "content": "Sen bir Telegram sohbet botusun."},
-            {"role": "user", "content": user_input}
-        ]
-    }
-
     try:
-        response = requests.post("https://openrouter.ai/api/v1/chat/completions",
-                                 headers=headers,
-                                 json=payload)
+        url = f'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}'
+
+        payload = {
+            "contents": [
+                {"parts": [{"text": user_input}]}
+            ]
+        }
+
+        headers = {"Content-Type": "application/json"}
+
+        response = requests.post(url, json=payload, headers=headers)
 
         if response.status_code == 200:
-            data = response.json()
-            reply = data["choices"][0]["message"]["content"]
+            reply = response.json()['candidates'][0]['content']['parts'][0]['text']
             bot.reply_to(message, reply)
         else:
-            bot.reply_to(message, f"API hatası: {response.status_code}")
+            bot.reply_to(message, f"API hatası: {response.status_code} - {response.text}")
+
     except Exception as e:
         bot.reply_to(message, f"Hata oluştu: {e}")
 
