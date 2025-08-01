@@ -2,9 +2,12 @@ import telebot
 import requests
 
 BOT_TOKEN = '8456728583:AAGVjaFzVdCrZuXSNrL7w0OQucdaZpYqmI0'
-GEMINI_API_KEY = 'AIzaSyDGXakapXgul46kbkC6P4RI-yObnzeFsgM'  # BURAYA kendi Google API anahtarını yapıştır
+GEMINI_API_KEY = 'AIzaSyDGXakapXgul46kbkC6P4RI-yObnzeFsgM'  # Kendi API anahtarınız
 
 bot = telebot.TeleBot(BOT_TOKEN)
+
+# Webhook'u devre dışı bırak (409 hatasını önler)
+bot.remove_webhook()
 
 @bot.message_handler(func=lambda message: True)
 def handle_message(message):
@@ -32,4 +35,5 @@ def handle_message(message):
     except Exception as e:
         bot.reply_to(message, f"Hata oluştu: {e}")
 
-bot.polling()
+# Bot'u başlat
+bot.infinity_polling()
